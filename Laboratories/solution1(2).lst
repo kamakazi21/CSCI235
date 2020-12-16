@@ -1,0 +1,237 @@
+SQL> set feedback on
+SQL> set linesize 100
+SQL> set pagesize 400
+SQL> 
+SQL> /* (1)	Create a database link from the "host server" to the "remote server".                                        */
+SQL> 
+SQL> CREATE DATABASE LINK "DB.DATA-PC02" CONNECT TO jrg IDENTIFIED BY szczur USING 'data-pc02.adeis.uow.edu.au:1521/db';
+
+Database link "DB.DATA-PC02" created.
+
+SQL> 
+SQL> /* (2)	Create a synonym names of the relational tables located at the "remote server".                              */
+SQL> 
+SQL> CREATE SYNONYM ORDERS02 FOR ORDERS@"DB.DATA-PC02";
+
+Synonym ORDERS02 created.
+
+SQL> CREATE SYNONYM LINEITEM02 FOR LINEITEM@"DB.DATA-PC02";
+
+Synonym LINEITEM02 created.
+
+SQL> 
+SQL> /* (3)	Copy information about all orders and the contents of all orders submitted before 1 March 1992 from 
+SQL>        the "host server" to the "remote server".                                                                    */
+SQL> 
+SQL> INSERT INTO ORDERS02 (SELECT *
+  2                        FROM ORDERS
+  3  		      WHERE O_ORDERDATE < '01-MAR-1992');
+
+2 rows inserted.
+
+SQL> 
+SQL> INSERT INTO LINEITEM02 (SELECT *
+  2                          FROM LINEITEM
+  3  			WHERE L_ORDERKEY IN ( SELECT O_ORDERKEY
+  4  			                      FROM ORDERS
+  5  					      WHERE O_ORDERDATE < '01-MAR-1992') );
+
+1 row inserted.
+
+SQL> /* (4)	Delete from the "host server" all orders and the contents of all orders submitted before 1 March 1992.       */
+SQL> 
+SQL> DELETE FROM LINEITEM
+  2  WHERE L_ORDERKEY IN( SELECT O_ORDERKEY
+  3  		     FROM ORDERS
+  4  		     WHERE O_ORDERDATE < '01-MAR-1992');
+
+1 row deleted.
+
+SQL> 
+SQL> DELETE FROM ORDERS
+  2  WHERE O_ORDERDATE < '01-MAR-1992';
+
+2 rows deleted.
+
+SQL> 
+SQL> COMMIT;
+
+Commit complete.
+
+SQL> 
+SQL> /* (5)	Implement the following queries as SELECT statements.
+SQL>
+SQL>        (i)	Find the total number of orders recorded in both the "host server" and the “remote server            */
+SQL> 
+SQL> SELECT (SELECT COUNT(*) FROM ORDERS) + (SELECT COUNT(*) FROM ORDERS02)
+  2  FROM DUAL;
+
+(SELECTCOUNT(*)FROMORDERS)+(SELECTCOUNT(*)FROMORDERS02)
+-------------------------------------------------------
+                                                     85
+
+1 row selected. 
+
+SQL> 
+SQL> /*      (ii)	Find all order keys and all prices of all orders in both “host server” and the “remote server” 
+SQL>                where a price is greater than 150000. Sort the results in the ascending order of order keys.         */
+SQL> 
+SQL> SELECT O_ORDERKEY, O_TOTALPRICE
+  2  FROM ORDERS
+  3  WHERE O_TOTALPRICE > 150000
+  4  UNION
+  5  SELECT O_ORDERKEY, O_TOTALPRICE
+  6  FROM ORDERS02
+  7  WHERE O_TOTALPRICE > 150000
+  8  ORDER BY O_ORDERKEY ASC;
+
+O_ORDERKEY O_TOTALPRICE
+---------- ------------
+         3    150408.27
+         7    151486.24
+        39    205834.99
+        68    193512.76
+        71    162698.69
+       129    173539.45
+       135    154276.74
+       164    186518.01
+       226    165956.85
+       258    162577.11
+       260    161744.75
+       261    184858.86
+      1024    231789.95
+      1027    180261.07
+      1028    229085.04
+      1057    151853.96
+
+16 rows selected. 
+
+SQL> 
+SQL> /*      (iii)	Find all order keys of all nonempty orders, i.e. the orders that include at least one item. List 
+SQL>                the order keys together with the total number of items included in each order. Sort the results in 
+SQL>                the descending order of the total number of items included in each order. Sort all orders with 
+SQL>                the same total number of items in the ascending order of order keys. Use both "host server" and 
+SQL>                "remote server".                                                                                     */
+SQL> 
+SQL> SELECT L_ORDERKEY, COUNT(*) TOTAL
+  2  FROM LINEITEM02
+  3  GROUP BY L_ORDERKEY
+  4  UNION
+  5  SELECT L_ORDERKEY, COUNT(*)
+  6  FROM LINEITEM
+  7  GROUP BY L_ORDERKEY
+  8  ORDER BY TOTAL DESC, L_ORDERKEY ASC;
+
+L_ORDERKEY      TOTAL
+---------- ----------
+         7          7
+        68          7
+       129          7
+       164          7
+       194          7
+       225          7
+       226          7
+         1          6
+         3          6
+        32          6
+        35          6
+        39          6
+        67          6
+        69          6
+        70          6
+        71          6
+       134          6
+       135          6
+       163          6
+       192          6
+       197          6
+       224          6
+       229          6
+       230          6
+       258          6
+       261          6
+       100          5
+       130          5
+       165          5
+       198          5
+       259          5
+       260          5
+       288          5
+       289          5
+        33          4
+        98          4
+        99          4
+       102          4
+       103          4
+       132          4
+       133          4
+       166          4
+       195          4
+       231          4
+       290          4
+         5          3
+        34          3
+        37          3
+        65          3
+        97          3
+       101          3
+       131          3
+       160          3
+       193          3
+       256          3
+       262          3
+       263          3
+       291          3
+        66          2
+        96          2
+       167          2
+       196          2
+       199          2
+       227          2
+         2          1
+         4          1
+         6          1
+        36          1
+        38          1
+        64          1
+       128          1
+       161          1
+       162          1
+       228          1
+       257          1
+
+75 rows selected. 
+
+SQL> 
+SQL> /*      (iv)	Find the part keys of all parts included in at least one order located in the "host server" and 
+SQL>                in at least one order located in the "remote server".                                                */
+SQL> 
+SQL> SELECT L_PARTKEY
+  2  FROM LINEITEM02
+  3  INTERSECT
+  4  SELECT L_PARTKEY
+  5  FROM LINEITEM;
+
+ L_PARTKEY
+----------
+         7
+
+1 row selected. 
+
+SQL> 
+SQL> /* (6)	Drop the synonyms and a database link.                                                                       */
+SQL> 
+SQL> DROP DATABASE LINK "DB.DATA-PC02";
+
+Database link "DB.DATA-PC02" dropped.
+
+SQL> DROP SYNONYM ORDERS02;
+
+Synonym ORDERS02 dropped.
+
+SQL> DROP SYNONYM LINEITEM02;
+
+Synonym LINEITEM02 dropped.
+
+SQL> 
+SQL> spool off

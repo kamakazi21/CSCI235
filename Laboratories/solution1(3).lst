@@ -1,0 +1,81 @@
+> db.createCollection("task1",
+...                     { "validator":{$jsonSchema:
+...   {"bsonType":"object",
+...    "properties":{"_id":{"bsonType":"string"},
+                              "Owns":[ {"TRUCK":{"registration":"PKR567",
+                                                              "manufactur...                  "TRANSPORT                 "TRANSPORTATION COMPANY":{"bsonType":"object",
+...                        "properties":{"name":{"bsonType":"string"},
+...                                      "budget":{"bsonType":"int"},
+...                                      "Owns":{"bsonType":"array",
+...                                              "items":{"bsonType":"object",
+...                                                       "properties":{"TRUCK":{"bsonType":"object",
+...                                                                              "properties":{"registration":{"bsonType":"string"},
+...                                                                                            "manufacturer":{"bsonType":"string"},
+...                                                                                            "speed":{"bsonType":"int"} },
+...                                                                               "required":["registration","manufacturer","speed"],
+...                                                                               "additionalProperties":false} },
+...                                                        "required":["TRUCK"],
+...                                                        "additionalProperties":false} },
+...                                      "Employs":{"bsonType":"array",
+...                                                 "items":{"bsonType":"object",
+...                                                          "properties":{"DRIVER":{"bsonType":"object",
+...                                                                                    "properties":{"licence":{"bsonType":"string"},
+...                                                                                                  "full name":{"bsonType":"string"},
+...                                                                                                  "date of birth":{"bsonType":"date"} },
+...                                                                               "required":["licence","full name","date of birth"],
+...                                                                               "additionalProperties":false} },
+...                                                        "additionalProperties":false} } },
+...                        "required":["name","budget","Owns"],
+...                        "additionalProperties":false} },
+...    "required":["_id","TRANSPORTATION COMPANY"],
+...    "additionalProperties":false
+...   } } } );
+{ "ok" : 1 }
+> 
+> db.task1.insert({"_id":"Never on time",
+...                  "TRANSPORTATION COMPANY":{"name":"Never on time",
+...                                            "budget":NumberInt("123456"),
+...                                            "Owns":[ {"TRUCK":{"registration":"PKR567",
+...                                                               "manufacturer":"Volvo",
+...                                                               "speed":NumberInt("200")} },
+...                                                     {"TRUCK":{"registration":"ALUK08",
+...                                                               "manufacturer":"Man",
+...                                                               "speed":NumberInt("160")} } ],
+...                                            "Employs":[ {"DRIVER":{"licence":"AA123456",
+...                                                                     "full name":"James Bond",
+...                                                                     "date of birth":new Date("1960-01-01")} },
+...                                                        {"DRIVER":{"licence":"BB123456",
+...                                                                     "full name":"Harry Potter",
+...                                                                     "date of birth":new Date("1990-06-06")} } ]
+...                                           }
+...                 } );
+WriteResult({ "nInserted" : 1 })
+> 
+> db.task1.insert({"_id":"Never on time",
+...                  "TRANSPORTATION COMPANY":{"name":"Never on time",
+...                                            "budget":123456,
+...                                            "Owns":[ {"TRUCK":{"registration":"PKR567",
+...                                                               "manufacturer":"Volvo",
+...                                                               "speed":NumberInt("200")} },
+...                                                     {"TRUCK":{"registration":"ALUK08",
+...                                                               "manufacturer":"Man",
+...                                                               "speed":NumberInt("160")} } ],
+...                                            "Employs":[ {"DRIVER":{"licence":"AA123456",
+...                                                                     "full name":"James Bond",
+...                                                                     "date of birth":new Date("1960-01-01")} },
+...                                                        {"DRIVER":{"licence":"BB123456",
+...                                                                     "full name":"Harry Potter",
+...                                                                     "date of birth":new Date("1990-06-06")} } ]
+...                                           }
+...                 } );
+WriteResult({
+	"nInserted" : 0,
+	"writeError" : {
+		"code" : 121,
+		"errmsg" : "Document failed validation"
+	}
+})
+> 
+> print("Budget is a floating point number, while integer is required");
+Budget is a floating point number, while integer is required
+

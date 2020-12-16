@@ -1,0 +1,79 @@
+SQL> 
+SQL> set echo on
+SQL> set feedback on
+SQL> set linesize 100
+SQL> set pagesize 300
+SQL> 
+SQL> /* Implement a script solution2.sql that performs the following sequence of actions.
+SQL>
+SQL>   (1)	First, the script processes SELECT statement give above,                         */
+SQL> 
+SQL> SELECT CUSTOMER.C_CUSTKEY, COUNT(ORDERS.O_CUSTKEY) CNT
+  2  FROM CUSTOMER LEFT OUTER JOIN ORDERS
+  3                ON CUSTOMER.C_CUSTKEY = ORDERS.O_CUSTKEY
+  4  GROUP BY CUSTOMER.C_CUSTKEY
+  5  HAVING COUNT(ORDERS.O_CUSTKEY) > 20 OR
+  6         COUNT(ORDERS.O_CUSTKEY) = 0
+  7  ORDER BY CNT ASC;
+
+ C_CUSTKEY        CNT
+---------- ----------
+        14          0
+        11          0
+        13          0
+        15          0
+        16          0
+        12          0
+         7         21
+         4         23
+
+8 rows selected. 
+
+SQL> 
+SQL> /* (2)	Next, the script stores PL/SQL function in a data dictionary,                    */
+SQL> 
+SQL> CREATE OR REPLACE FUNCTION OCOUNT(CUSTKEY NUMBER) RETURN NUMBER IS
+  2  TOTAL NUMBER(7);
+  3  BEGIN
+  4   SELECT COUNT(*)
+  5   INTO TOTAL
+  6   FROM ORDERS
+  7   WHERE O_CUSTKEY = CUSTKEY;
+  8  
+  9   RETURN(TOTAL);
+ 10  END;
+ 11  /
+
+Function created.
+SQL> 
+SQL> /* (3)	Next, the script processes SELECT statement that uses the stored function 
+SQL>        to retrieve the same results as the original statement,                         */
+SQL> 
+SQL> SELECT C_CUSTKEY, OCOUNT(C_CUSTKEY) CNT
+  2  FROM CUSTOMER
+  3  WHERE OCOUNT(C_CUSTKEY) > 20 OR
+  4        OCOUNT(C_CUSTKEY) = 0
+  5  ORDER BY CNT ASC;
+
+ C_CUSTKEY        CNT
+---------- ----------
+        12          0
+        15          0
+        11          0
+        16          0
+        13          0
+        14          0
+         7         21
+         4         23
+
+8 rows selected. 
+
+SQL> 
+SQL> /* (4)	Finally, the script drops the stored function.                                  */
+SQL> 
+SQL> DROP FUNCTION OCOUNT;
+
+Function dropped.
+
+SQL> 
+SQL> spool off

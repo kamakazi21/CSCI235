@@ -1,0 +1,192 @@
+SQL> 
+SQL> 
+SQL> set echo on
+SQL> set feedback on
+SQL> set linesize 200
+SQL> set pagesize 500
+SQL> set serveroutput on
+SQL> 
+SQL> /* Implement a stored PL/SQL procedure 
+SQL>   INSERT_ITEM(order_key,part_key,supplier_key,quantity,price,discount,tax)                                      */
+SQL> 
+SQL> /* that enforces a consistency constraint listed below before inserting a row to a relational table LINEITEM. 
+SQL>   The procedure must also generate the values of missing attributes before insertion of a row.  The procedure 
+SQL>   must make an insertion of a row permanent in a database. If a consistency constraint does not validate well, 
+SQL>   the procedure does not insert a row and displays an error message.                                            */
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE INSERT_ITEM(order_key    IN NUMBER,
+  2                                          part_key     IN NUMBER,
+  3                                          supplier_key IN NUMBER,
+  4                                          quantity     IN NUMBER,
+  5                                          price        IN NUMBER,
+  6                                          discount     IN NUMBER,
+  7                                          tax          IN NUMBER ) IS 
+  8   item_row LINEITEM%ROWTYPE;
+  9   total NUMBER(12);
+ 10  
+ 11  /*  (1)	The same part manufactured by the same supplier cannot be included more than one time in the same order. */
+ 12  
+ 13  BEGIN
+ 14  
+ 15    SELECT COUNT(*)
+ 16    INTO total
+ 17    FROM LINEITEM
+ 18    WHERE L_ORDERKEY = order_key AND
+ 19          L_PARTKEY = part_key AND
+ 20          L_SUPPKEY = supplier_key;
+ 21  
+ 22    IF ( total != 0 ) THEN
+ 23      DBMS_OUTPUT.PUT_LINE('Violated consistency constraint:');
+ 24      DBMS_OUTPUT.PUT_LINE('The same part manufactured by the same supplier cannot be included more than one time in the same order.');
+ 25      RETURN;
+ 26    END IF;
+ 27  
+ 28    item_row.L_ORDERKEY := order_key;
+ 29    item_row.L_PARTKEY := part_key;
+ 30    item_row.L_SUPPKEY := supplier_key;
+ 31  
+ 32  /*  (2)	 A value of an attribute L_LINENUMBER must be automatically generated.	                                 */  
+ 33  
+ 34    SELECT COUNT(*)
+ 35    INTO total
+ 36    FROM LINEITEM
+ 37    WHERE L_ORDERKEY = order_key;
+ 38  
+ 39    IF ( total = 0 ) THEN
+ 40     item_row.L_LINENUMBER := 1;
+ 41    ELSE
+ 42     item_row.L_LINENUMBER := total+1;
+ 43    END IF;
+ 44  
+ 45  /*  (3)	A value of attribute L_SHIPDATE must be tomorrow's date.                                                 */
+ 46  
+ 47    item_row.L_SHIPDATE := sysdate +1;
+ 48  
+ 49  /*  (4)	A value of attribute L_RECEIPTDATE must be one week after shipment date.                                 */
+ 50  
+ 51    item_row.L_RECEIPTDATE := item_row.L_SHIPDATE + 7;
+ 52  
+ 53  /*  (5)	The values of other attributesThe values of the other attributes are up to you. A simple solution is to 
+ 54          use 0 for the columns of type NUMBER, empty string '' for CHAR or VARCHAR and today's date for DATE.     */
+ 55  
+ 56    item_row.L_QUANTITY := quantity;
+ 57    item_row.L_EXTENDEDPRICE := price;                               
+ 58    item_row.L_DISCOUNT := discount;
+ 59    item_row.L_TAX := tax;                     
+ 60    item_row.L_RETURNFLAG := '';                           
+ 61    item_row.L_LINESTATUS := '';                          
+ 62    item_row.L_COMMITDATE := sysdate;                         
+ 63    item_row.L_SHIPINSTRUCT := '';                 
+ 64    item_row.L_SHIPMODE := '';                           
+ 65    item_row.L_COMMENT := ' ';         
+ 66  
+ 67    INSERT INTO LINEITEM VALUES (item_row.L_ORDERKEY,
+ 68                                 item_row.L_PARTKEY,
+ 69                                 item_row.L_SUPPKEY,
+ 70                                 item_row.L_LINENUMBER,
+ 71                                 item_row.L_QUANTITY,
+ 72                                 item_row.L_EXTENDEDPRICE,
+ 73                                 item_row.L_DISCOUNT,
+ 74                                 item_row.L_TAX,
+ 75                                 item_row.L_RETURNFLAG, 
+ 76                                 item_row.L_LINESTATUS,
+ 77                                 item_row.L_SHIPDATE,
+ 78                                 item_row.L_COMMITDATE,
+ 79                                 item_row.L_RECEIPTDATE,
+ 80                                 item_row.L_SHIPINSTRUCT,
+ 81                                 item_row.L_SHIPMODE,
+ 82                                 item_row.L_COMMENT);
+ 83    COMMIT;
+ 84  
+ 85  END INSERT_ITEM;
+ 86  /
+
+Procedure created.
+SQL> 
+SQL> show errors
+SQL> 
+SQL> /* Testing must be performed in the following way.                                            */
+SQL> 
+SQL> /* (1)    One successful insertion must be performed into an already existing order.          */
+SQL> 
+SQL> EXECUTE INSERT_ITEM(1, 10, 1, 5, 25, 0.1, 0.2);
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SELECT *
+  2  FROM LINEITEM
+  3  WHERE L_ORDERKEY = 1 AND
+  4        L_PARTKEY = 10 AND
+  5        L_SUPPKEY = 1;
+
+L_ORDERKEY  L_PARTKEY  L_SUPPKEY L_LINENUMBER L_QUANTITY L_EXTENDEDPRICE L_DISCOUNT      L_TAX L L L_SHIPDAT L_COMMITD L_RECEIPT L_SHIPINSTRUCT            L_SHIPMODE
+---------- ---------- ---------- ------------ ---------- --------------- ---------- ---------- - - --------- --------- --------- ------------------------- ----------
+L_COMMENT                                   
+--------------------------------------------
+         1         10          1            6          5              25         .1         .2     03-SEP-20 02-SEP-20 10-SEP-20                                      
+                                            
+
+
+1 row selected. 
+
+SQL> 
+SQL> /* (2)    One successful insertion must be performed into a new order, and it means that 
+SQL>          you must insert a new order into a relational table ORDERS first.                  */
+SQL> 
+SQL> INSERT INTO ORDERS VALUES(1058, 10, 'F', 999, sysdate, '1-URGENT',  'Clerk#000000124', 0, 'Comment');
+
+1 row created.
+
+SQL> 
+SQL> EXECUTE INSERT_ITEM(1058, 10, 1, 5, 25, 0.1, 0.2);
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SELECT *
+  2  FROM LINEITEM
+  3  WHERE L_ORDERKEY = 1058 AND
+  4        L_PARTKEY = 10 AND
+  5        L_SUPPKEY = 1;
+
+L_ORDERKEY  L_PARTKEY  L_SUPPKEY L_LINENUMBER L_QUANTITY L_EXTENDEDPRICE L_DISCOUNT      L_TAX L L L_SHIPDAT L_COMMITD L_RECEIPT L_SHIPINSTRUCT            L_SHIPMODE
+---------- ---------- ---------- ------------ ---------- --------------- ---------- ---------- - - --------- --------- --------- ------------------------- ----------
+L_COMMENT                                   
+--------------------------------------------
+      1058         10          1            1          5              25         .1         .2     03-SEP-20 02-SEP-20 10-SEP-20                                      
+                                            
+
+
+1 row selected. 
+
+SQL> 
+SQL> /* (3)    One unsuccessful insertion must be performed into an already existing order.       */
+SQL> /* (4)    Use SELECT statement to display the successfully inserted rows.                    */
+SQL> 
+SQL> EXECUTE INSERT_ITEM(1, 10, 1, 6, 25, 0.1, 0.2);
+Violated consistency constraint:
+The same part manufactured by the same supplier cannot be included more than one time in the same order.
+
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SELECT *
+  2  FROM LINEITEM
+  3  WHERE L_ORDERKEY = 1 AND
+  4        L_PARTKEY = 10 AND
+  5        L_SUPPKEY = 1;
+
+L_ORDERKEY  L_PARTKEY  L_SUPPKEY L_LINENUMBER L_QUANTITY L_EXTENDEDPRICE L_DISCOUNT      L_TAX L L L_SHIPDAT L_COMMITD L_RECEIPT L_SHIPINSTRUCT            L_SHIPMODE
+---------- ---------- ---------- ------------ ---------- --------------- ---------- ---------- - - --------- --------- --------- ------------------------- ----------
+L_COMMENT                                   
+--------------------------------------------
+         1         10          1            6          5              25         .1         .2     03-SEP-20 02-SEP-20 10-SEP-20                                      
+                                            
+
+
+1 row selected. 
+
+SQL> 
+SQL> spool off

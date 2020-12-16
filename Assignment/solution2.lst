@@ -1,0 +1,58 @@
+SQL> 
+SQL> set echo on
+SQL> set feedback on
+SQL> set linesize 200
+SQL> set pagesize 500
+SQL> 
+SQL> /* We would like to store in the database information that satisfies the following constraints. */
+SQL> 
+SQL> /* (2)	The database contains information about 3 owners.                                       */
+SQL> 
+SQL> INSERT INTO OWNER VALUES( 'James', 'Bond', 007 );
+
+1 row created.
+
+SQL> INSERT INTO OWNER VALUES( 'Harry', 'Potter', 666 );
+
+1 row created.
+
+SQL> INSERT INTO OWNER VALUES( 'Robin', 'Hood', 001 );
+
+1 row created.
+
+SQL> 
+SQL> /* (1)	The database contains information about 5 real estate properties that include 
+SQL>        2 stand-alone houses and 3 blocks of land.                                              
+SQL>
+SQL>        The first owner owns 1 stand-alone house and 2 blocks of land. The second owner owns 
+SQL>        1 stand-alone house. The third owner owns only one block of land.                       */
+SQL> 
+SQL> INSERT INTO PROPERTY VALUES('Dapto', 'Bong Bong', 13, 234, 2, 'house', 100000, 007);
+
+1 row created.
+
+SQL> INSERT INTO PROPERTY VALUES('Miami', 'President Ave.', 222, 1000, NULL, 'land', 200000, 007);
+
+1 row created.
+
+SQL> INSERT INTO PROPERTY VALUES('San Francisco', 'Alcatraz Island', 34, 1000, NULL, 'land', 2000000, 007);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO PROPERTY VALUES('Wagga Wagga', 'Station St.', 7, 2356, 5, 'house', 2345680, 666);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO PROPERTY VALUES('Nottingham', 'Oak Forest', 1,  1000000.99, NULL, 'land', 9999999, 001);
+
+1 row created.
+
+SQL> 
+SQL> /* (3)	All values of attributes must be meaningful, for example the first name of an owner 
+SQL>        like QQQ is unacceptable. No marks will be granted for task 2 and 30% will be deducted 
+SQL>        from the total evaluation of Assignment 0 (zero) for meaningless values of 
+SQL>        the attributes.                                                                         */
+SQL> 
+SQL> spool off

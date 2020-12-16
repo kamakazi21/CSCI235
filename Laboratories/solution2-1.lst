@@ -1,0 +1,101 @@
+SQL> set feedback on
+SQL> set linesize 3000
+SQL> set pagesize 400
+SQL> 
+SQL> CREATE OR REPLACE FUNCTION BSONNATION(nationkey IN NATION.N_NATIONKEY%TYPE) RETURN VARCHAR IS
+  2  
+  3  bnation     VARCHAR(2000) := '';
+  4  nation_row  NATION%ROWTYPE;
+  5  
+  6  BEGIN
+  7   SELECT *
+  8   INTO nation_row
+  9   FROM NATION
+ 10   WHERE N_NATIONKEY = nationkey;
+ 11  
+ 12   bnation:=  '{"NATION":'                    ||
+ 13                 '{ "nation key":NumberInt("' || nation_row.N_NATIONKEY            || '"),'    || 
+ 14  	         '"name":"'                 || RTRIM(nation_row.N_NAME,' ')      || '",'     ||
+ 15  	         '"comment":"'              || nation_row.N_COMMENT              || '"}'     || 
+ 16                  '}' ;
+ 17  
+ 18   RETURN(bnation);
+ 19  
+ 20  EXCEPTION
+ 21   WHEN NO_DATA_FOUND THEN
+ 22     RETURN('{"NATION":{}');
+ 23  END BSONNATION;
+ 24  /
+
+Function BSONNATION compiled
+
+SQL> show errors
+SQL> 
+SQL> CREATE OR REPLACE FUNCTION BSONREGION(regionkey IN REGION.R_REGIONKEY%TYPE) RETURN VARCHAR IS
+  2  
+  3  bregion	     VARCHAR(20000) := '';
+  4  region_row   REGION%ROWTYPE;
+  5  nation_row   NATION%ROWTYPE;
+  6  
+  7  BEGIN
+  8  
+  9   SELECT *
+ 10   INTO region_row
+ 11   FROM REGION
+ 12   WHERE R_REGIONKEY = regionkey;
+ 13  
+ 14   bregion := 'db.task2.insert(' ||
+ 15              '{"_id":'                           || 'NumberInt("' || region_row.R_REGIONKEY ||                        '"),' ||
+ 16              '"REGION":'                         ||
+ 17              '{ "region key":NumberInt("'        || region_row.R_REGIONKEY       ||                  '"),' ||
+ 18  	      '"name":"'                        || RTRIM(region_row.R_NAME,' ') ||                  '",'  ||
+ 19  	      '"comment":"'                     || region_row.R_COMMENT         ||                  '",'  || 
+ 20                '"hosts":[';
+ 21  
+ 22                FOR nation_row IN ( SELECT *
+ 23                                    FROM NATION
+ 24                                    WHERE N_REGIONKEY = regionkey
+ 25                                    ORDER BY N_NAME ASC ) 
+ 26                LOOP
+ 27                 bregion := bregion || BSONNATION(NATION_row.N_NATIONKEY) ||',';
+ 28                END LOOP;
+ 29  
+ 30   IF ( SUBSTR(bregion,length(bregion),1) = ',' ) THEN
+ 31     bregion := SUBSTR(bregion,1,length(bregion)-1);
+ 32   END IF;
+ 33  
+ 34   bregion := bregion || ' ] } } );';
+ 35  
+ 36   RETURN(bregion);
+ 37  
+ 38  EXCEPTION
+ 39   WHEN NO_DATA_FOUND THEN
+ 40     RETURN('{}');
+ 41  END BSONREGION;
+ 42  /
+
+Function BSONREGION compiled
+
+SQL> 
+SQL> show errors
+SQL> 
+SQL> SELECT BSONREGION(R_REGIONKEY)
+  2  FROM REGION;
+
+BSONREGION(R_REGIONKEY)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+db.task2.insert({"_id":NumberInt("0"),"REGION":{ "region key":NumberInt("0"),"name":"AFRICA","comment":"special Tiresias about the furiously even dolphins are furi","hosts":[{"NATION":{ "nation key":NumberInt("0"),"name":"ALGERIA","comment":"final accounts wake quickly. special reques"}},{"NATION":{ "nation key":NumberInt("1"),"name":"SUDAN","comment":"idly final instructions cajole stealthily. regular instructions wake carefully blithely express accounts. fluffi"}} ] } } );
+db.task2.insert({"_id":NumberInt("1"),"REGION":{ "region key":NumberInt("1"),"name":"NORTH AMERICA","comment":"even, ironic theodolites according to the bold platelets wa","hosts":[ ] } } );
+db.task2.insert({"_id":NumberInt("2"),"REGION":{ "region key":NumberInt("2"),"name":"ASIA","comment":"silent, bold requests sleep slyly across the quickly sly dependencies. furiously silent instructions alongside","hosts":[{"NATION":{ "nation key":NumberInt("2"),"name":"AUSTRALIA","comment":"always pending pinto beans sleep sil"}},{"NATION":{ "nation key":NumberInt("3"),"name":"BRAZIL","comment":"foxes among the bold requests"}},{"NATION":{ "nation key":NumberInt("4"),"name":"CANADA","comment":"pending accounts haggle furiously. furiously bold accounts detect. platelets at the packages haggle caref"}},{"NATION":{ "nation key":NumberInt("7"),"name":"ETHIOPIA","comment":"blithely ironic foxes grow. quickly pending accounts are b"}} ] } } );
+db.task2.insert({"_id":NumberInt("3"),"REGION":{ "region key":NumberInt("3"),"name":"AUSTRALIA","comment":"special, bold deposits haggle foxes. platelet","hosts":[{"NATION":{ "nation key":NumberInt("5"),"name":"CHINA","comment":"fluffily ruthless requests integrate fluffily. pending ideas wake blithely acco"}},{"NATION":{ "nation key":NumberInt("17"),"name":"KENYA","comment":"final, final accounts sleep slyly across the requests. "}} ] } } );
+db.task2.insert({"_id":NumberInt("4"),"REGION":{ "region key":NumberInt("4"),"name":"EUROPE","comment":"furiously unusual packages use carefully above the unusual, exp","hosts":[{"NATION":{ "nation key":NumberInt("10"),"name":"INDIA","comment":"blithely even accounts about the furiously regular foxes nag slyly final accounts. quickly final fo"}},{"NATION":{ "nation key":NumberInt("11"),"name":"INDONESIA","comment":"express, pending deposits boost quick"}},{"NATION":{ "nation key":NumberInt("18"),"name":"MALAWI","comment":"bold accounts are. slyly ironic escapades haggle acc"}},{"NATION":{ "nation key":NumberInt("19"),"name":"MOROCCO","comment":"deposits boost against the brave id"}},{"NATION":{ "nation key":NumberInt("20"),"name":"MOZAMBIQUE","comment":"fluffily final accounts wake slyly-- fi"}} ] } } );
+db.task2.insert({"_id":NumberInt("5"),"REGION":{ "region key":NumberInt("5"),"name":"SOUTH AMERICA","comment":"carefully final platelets haggle even, bold accounts. final theodolites at the foxes nag quickly about the fluf","hosts":[{"NATION":{ "nation key":NumberInt("8"),"name":"FRANCE","comment":"ironic packages should have to are slyly around the special, ironic accounts. iron"}},{"NATION":{ "nation key":NumberInt("9"),"name":"GERMANY","comment":"unusual excuses are quickly requests. slyly ironic accounts haggle carefully above the pendin"}},{"NATION":{ "nation key":NumberInt("15"),"name":"JAPAN","comment":"ideas according to the fluffily final pinto beans sleep furiously"}},{"NATION":{ "nation key":NumberInt("21"),"name":"PERU","comment":"doggedly ironic requests haggle furiously ironic, ironic packages. furiously final courts wake fur"}} ] } } );
+db.task2.insert({"_id":NumberInt("6"),"REGION":{ "region key":NumberInt("6"),"name":"MIDDLE EAST","comment":"unusual accounts cajole slyly ","hosts":[{"NATION":{ "nation key":NumberInt("6"),"name":"EGYPT","comment":"even requests detect near the pendin"}},{"NATION":{ "nation key":NumberInt("12"),"name":"IRAN","comment":"blithely final packages cajole quickly even dependencies? blithely regular deposits haggle express, ironic re"}},{"NATION":{ "nation key":NumberInt("13"),"name":"IRAQ","comment":"blithe, express deposits boost carefully busy accounts. furiously pending depos"}},{"NATION":{ "nation key":NumberInt("22"),"name":"POLAND","comment":"slowly pending patterns x-ray quickly. ironic, even accounts haggle furiously. even, final deposits mold bl"}} ] } } );
+db.task2.insert({"_id":NumberInt("7"),"REGION":{ "region key":NumberInt("7"),"name":"OCEANIA","comment":"pending deposits detect carefully. carefully final idea","hosts":[{"NATION":{ "nation key":NumberInt("23"),"name":"CHINA","comment":"fluffily regular pinto beans breach according to the ironic dolph"}},{"NATION":{ "nation key":NumberInt("14"),"name":"INDIA","comment":"ironic requests boost. quickly pending pinto beans cajole slyly slyly even deposits. ironic packages "}},{"NATION":{ "nation key":NumberInt("16"),"name":"JORDAN","comment":"ironic courts wake fluffily even, bold deposi"}},{"NATION":{ "nation key":NumberInt("26"),"name":"VIETNAM","comment":"express deposits haggle final frays? even deposits boost"}} ] } } );
+db.task2.insert({"_id":NumberInt("8"),"REGION":{ "region key":NumberInt("8"),"name":"SOUTH AMERICA","comment":"carefully pending dependencies haggle carefully among the quickly ironic deposits. packages cajole. ironic a","hosts":[{"NATION":{ "nation key":NumberInt("24"),"name":"ROMANIA","comment":"blithely regular deposits serve furiously blithely regular warthogs! slyly fi"}},{"NATION":{ "nation key":NumberInt("27"),"name":"RUSSIA","comment":"deposits cajole fluffily. dogged accounts nag. regular deposits do snooze! express deposits cajole ironic deposits"}} ] } } );
+db.task2.insert({"_id":NumberInt("9"),"REGION":{ "region key":NumberInt("9"),"name":"CENTRAL AMERICA","comment":"fluffily unusual foxes grow even, bold instructions. always regular courts haggle. evenly unusual account","hosts":[{"NATION":{ "nation key":NumberInt("28"),"name":"RWNDA","comment":"quickly even asymptotes are about the quickly even foxes. thin instructions us"}},{"NATION":{ "nation key":NumberInt("25"),"name":"SAUDI ARABIA","comment":"instructions haggle carefully carefully ironic pinto beans. slyly sly requests"}},{"NATION":{ "nation key":NumberInt("29"),"name":"UNITED KINGDOM","comment":"special accounts wake carefully carefull"}} ] } } );
+
+10 rows selected. 
+
+SQL> 
+SQL> spool off

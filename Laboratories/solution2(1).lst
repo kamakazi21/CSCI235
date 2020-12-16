@@ -1,0 +1,135 @@
+SQL> 
+SQL> set echo on
+SQL> set feedback on
+SQL> set linesize 100
+SQL> set pagesize 500
+SQL> 
+SQL> CREATE OR REPLACE TRIGGER SOLUTION2
+  2  
+  3  BEFORE INSERT ON LINEITEM
+  4  
+  5  FOR EACH ROW
+  6  
+  7  DECLARE
+  8   total NUMBER(12);
+  9   uname ORDER_CREATOR.USER_NAME%TYPE;
+ 10  
+ 11  BEGIN
+ 12  
+ 13   SELECT USER
+ 14   INTO uname
+ 15   FROM DUAL;
+ 16  
+ 17   SELECT COUNT(*)
+ 18   INTO total
+ 19   FROM ORDER_CREATOR
+ 20   WHERE ( ORDER_CREATOR.USER_NAME = uname ) AND
+ 21         ( ORDER_CREATOR.OC_ORDERKEY = :NEW.L_ORDERKEY );
+ 22  
+ 23   IF ( total = 0 ) THEN
+ 24    RAISE_APPLICATION_ERROR(-20001, 'A user is not allowed to insert an item to an order created by another user');
+ 25   END IF;
+ 26  
+ 27  END;
+ 28  /
+
+Trigger created.
+SQL> 
+SQL> show errors
+SQL> 
+SQL> INSERT INTO ORDERS VALUES(7777, 2, 'F', 125093.31, SYSDATE, '5-LOW', 'Clerk#000000951', 0, 'blithely final dolphins');
+
+1 row created.
+
+SQL> INSERT INTO ORDERS VALUES(7778, 2, 'F', 125093.31, SYSDATE, '5-LOW', 'Clerk#000000951', 0, 'blithely final dolphins');
+
+1 row created.
+
+SQL> COMMIT;
+
+Commit complete.
+
+SQL> 
+SQL> SELECT *
+  2  FROM ORDER_CREATOR;
+
+OC_ORDERKEY USER_NAME                     
+----------- ------------------------------
+       7777 CSCI235                       
+       7778 CSCI235                       
+
+2 rows selected. 
+
+SQL> 
+SQL> INSERT INTO LINEITEM VALUES(7777,4,1,2,36,32544.00,0.09,0.06,'N','O',TO_DATE('1996-04-12','YYYY-MM-DD'),TO_DATE('1996-02-28','YYYY-MM-DD'),TO_DATE('1996-04-20','YYYY-MM-DD'),'TAKE BACK RETURN','MAIL','slyly bold pinto beans detect');
+
+1 row created.
+
+SQL> COMMIT;
+
+Commit complete.
+
+SQL> 
+SQL> UPDATE ORDER_CREATOR
+  2  SET USER_NAME = 'qqq'
+  3  WHERE OC_ORDERKEY = 7778;
+
+1 row updated.
+
+SQL> COMMIT;
+
+Commit complete.
+
+SQL> 
+SQL> SELECT COUNT(*)
+  2   FROM ORDER_CREATOR
+  3   WHERE ORDER_CREATOR.USER_NAME = 'CSCI235' AND
+  4         ORDER_CREATOR.OC_ORDERKEY = 7778;
+
+  COUNT(*)
+----------
+         0
+
+1 row selected. 
+
+SQL> 
+SQL> SELECT *
+  2  FROM ORDER_CREATOR;
+
+OC_ORDERKEY USER_NAME                     
+----------- ------------------------------
+       7777 CSCI235                       
+       7778 qqq                           
+
+2 rows selected. 
+
+SQL> 
+SQL> INSERT INTO LINEITEM VALUES(7778,4,1,2,36,32544.00,0.09,0.06,'N','O',TO_DATE('1996-04-12','YYYY-MM-DD'),TO_DATE('1996-02-28','YYYY-MM-DD'),TO_DATE('1996-04-20','YYYY-MM-DD'),'TAKE BACK RETURN','MAIL','slyly bold pinto beans detect');
+
+INSERT INTO LINEITEM VALUES(7778,4,1,2,36,32544.00,0.09,0.06,'N','O',TO_DATE('1996-04-12','YYYY-MM-DD'),TO_DATE('1996-02-28','YYYY-MM-DD'),TO_DATE('1996-04-20','YYYY-MM-DD'),'TAKE BACK RETURN','MAIL','slyly bold pinto beans detect')
+            *
+ERROR at line 1:
+ORA-20001: A user is not allowed to insert an item to an order created by another user
+ORA-06512: at "CSCI235.SOLUTION2", line 18
+ORA-04088: error during execution of trigger 'CSCI235.SOLUTION2'
+
+SQL> COMMIT;
+
+Commit complete.
+
+SQL> 
+SQL> INSERT INTO LINEITEM VALUES(1,4,1,7,36,32544.00,0.09,0.06,'N','O',TO_DATE('1996-04-12','YYYY-MM-DD'),TO_DATE('1996-02-28','YYYY-MM-DD'),TO_DATE('1996-04-20','YYYY-MM-DD'),'TAKE BACK RETURN','MAIL','slyly bold pinto beans detect');
+
+INSERT INTO LINEITEM VALUES(1,4,1,7,36,32544.00,0.09,0.06,'N','O',TO_DATE('1996-04-12','YYYY-MM-DD'),TO_DATE('1996-02-28','YYYY-MM-DD'),TO_DATE('1996-04-20','YYYY-MM-DD'),'TAKE BACK RETURN','MAIL','slyly bold pinto beans detect')
+            *
+ERROR at line 1:
+ORA-20001: A user is not allowed to insert an item to an order created by another user
+ORA-06512: at "CSCI235.SOLUTION2", line 18
+ORA-04088: error during execution of trigger 'CSCI235.SOLUTION2'
+
+SQL> COMMIT;
+
+Commit complete.
+
+SQL> 
+SQL> spool off

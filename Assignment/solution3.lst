@@ -1,0 +1,54 @@
+SQL> 
+SQL> set echo on
+SQL> set feedback on
+SQL> set linesize 200
+SQL> set pagesize 500
+SQL> 
+SQL> /* We would like to change the structures of the database created and loaded with data 
+SQL>   in the previous steps in the following ways.
+SQL>
+SQL>   (1)	It should be possible to keep information about the dates when a real estate 
+SQL>        property has been put on a market.                                                   */
+SQL> 
+SQL> ALTER TABLE PROPERTY ADD onmarket DATE NULL;
+
+Table altered.
+
+SQL> 
+SQL> /* (2)	It should be possible to keep information about total number of properties (both 
+SQL>        blocks of land and stand-alone houses) owned by each owner.                          */
+SQL> 
+SQL> ALTER TABLE OWNER ADD total NUMBER(3) NULL;
+
+Table altered.
+
+SQL> 
+SQL> /* (3)	It should be possible to keep information about potential buyers and their interests 
+SQL>        in the real estate properties offered for sale. A potential buyer is uniquely 
+SQL>        identified by mobile phone number. Additional description of a buyer includes first 
+SQL>        name  and last name. A potential buyer expresses his/her interests in purchasing of 
+SQL>        one or more real estate properties.                                                  */
+SQL> 
+SQL> CREATE TABLE BUYER(
+  2   first_name      VARCHAR(20)   NOT NULL,
+  3   last_name       VARCHAR(20)   NOT NULL,
+  4   phone           NUMBER(12)    NOT NULL,
+  5    CONSTRAINT BUYER_PK PRIMARY KEY (phone),
+  6    CONSTRAINT BUYER_CHECK CHECK (phone > 0 ) );
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE INTERESTED(
+  2   city            VARCHAR(20)   NOT NULL,
+  3   street          VARCHAR(20)   NOT NULL,
+  4   bldg_lot        NUMBER(4)     NOT NULL,
+  5   phone           NUMBER(12)    NOT NULL,
+  6    CONSTRAINT INTERESTED_PKEY PRIMARY KEY (city, street, bldg_lot, phone),
+  7    CONSTRAINT PROPERTY_FKEY1 FOREIGN KEY (city, street, bldg_lot) REFERENCES PROPERTY(city, street, bldg_lot),
+  8    CONSTRAINT PROPERTY_FKEY2 FOREIGN KEY (phone) REFERENCES BUYER(phone) );
+
+Table created.
+
+SQL> 
+SQL> spool off  

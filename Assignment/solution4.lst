@@ -1,0 +1,52 @@
+SQL> 
+SQL> set echo on
+SQL> set feedback on
+SQL> set linesize 200
+SQL> set pagesize 500
+SQL> 
+SQL> /* We would like to change the contents of the database created and loaded with 
+SQL>   data in the previous steps in the following ways.
+SQL>
+SQL>   (1)	Remove one of the real estate properties from a market.                                  */
+SQL> 
+SQL> DELETE
+  2  FROM INTERESTED
+  3  WHERE city = 'Miami' AND
+  4        street = 'President Ave.' AND
+  5        bldg_lot = 222;
+
+0 rows deleted.
+
+SQL> 
+SQL> DELETE
+  2  FROM PROPERTY
+  3  WHERE city = 'Miami' AND
+  4        street = 'President Ave.' AND
+  5        bldg_lot = 222;
+
+1 row deleted.
+
+SQL> 
+SQL> /* (2)	Remove an owner that owns no real estate properties.                                     */
+SQL> 
+SQL> DELETE
+  2  FROM OWNER
+  3  WHERE phone NOT IN (SELECT owner
+  4                      FROM PROPERTY);
+
+0 rows deleted.
+
+SQL> 
+SQL> /* (3)	Fill a column with information about the total number or properties owned by each owner. */
+SQL> 
+SQL> UPDATE OWNER
+  2  SET total = ( SELECT COUNT(*)
+  3                FROM PROPERTY
+  4  	      WHERE PROPERTY.owner = OWNER.phone );
+
+3 rows updated.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> spool off

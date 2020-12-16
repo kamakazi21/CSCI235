@@ -1,0 +1,78 @@
+SQL> 
+SQL> set echo on
+SQL> set feedback on
+SQL> set linesize 200
+SQL> set pagesize 500
+SQL> 
+SQL> /* We would like to implement the following queries as SELECT statements.
+SQL>
+SQL>   (1)	List full address of each real estate property together with the first and 
+SQL>        last name of an owner.                                                            */
+SQL> 
+SQL> SELECT city, street, bldg_lot, first_name, last_name
+  2  FROM PROPERTY JOIN OWNER
+  3                ON PROPERTY.owner = OWNER.phone;
+
+CITY                 STREET                 BLDG_LOT FIRST_NAME           LAST_NAME           
+-------------------- -------------------- ---------- -------------------- --------------------
+Dapto                Bong Bong                    13 James                Bond                
+San Francisco        Alcatraz Island              34 James                Bond                
+Wagga Wagga          Station St.                   7 Harry                Potter              
+Nottingham           Oak Forest                    1 Robin                Hood                
+
+4 rows selected. 
+
+SQL> 
+SQL> /* (2)	List the first name and last name of the owners together with the total number of 
+SQL>        a stand-alone houses owned.                                                       */
+SQL> 
+SQL> SELECT first_name, last_name, count(city||street||TO_CHAR(bldg_lot))
+  2  FROM OWNER LEFT OUTER JOIN PROPERTY
+  3             ON OWNER.phone = PROPERTY.owner AND type = 'house'
+  4  GROUP BY phone, first_name, last_name;
+
+FIRST_NAME           LAST_NAME            COUNT(CITY||STREET||TO_CHAR(BLDG_LOT))
+-------------------- -------------------- --------------------------------------
+Harry                Potter                                                    1
+James                Bond                                                      1
+Robin                Hood                                                      0
+
+3 rows selected. 
+
+SQL> 
+SQL> /* (3)	List first name and last name of all owners together with information about blocks 
+SQL>        of land owned. Note, if an owner does not own a block of land then still list 
+SQL>        his/her first and last name.                                                     */
+SQL> 
+SQL> SELECT first_name, last_name, city, street, bldg_lot, area, price
+  2  FROM OWNER LEFT OUTER JOIN PROPERTY
+  3             ON OWNER.phone = PROPERTY.owner AND type = 'land';
+
+FIRST_NAME           LAST_NAME            CITY                 STREET                 BLDG_LOT       AREA      PRICE
+-------------------- -------------------- -------------------- -------------------- ---------- ---------- ----------
+James                Bond                 San Francisco        Alcatraz Island              34       1000    2000000
+Robin                Hood                 Nottingham           Oak Forest                    1 1000000.99    9999999
+Harry                Potter                                                                                         
+
+3 rows selected. 
+
+SQL> 
+SQL> (4) List the first and last name of all owners who own at least one stand-alone house and at least one block of land.
+  2
+SQL> SELECT first_name, last_name
+  2  FROM OWNER
+  3  WHERE phone IN (SELECT owner
+  4                  FROM PROPERTY
+  5  		WHERE type = 'house') AND
+  6        phone IN (SELECT owner
+  7                  FROM PROPERTY
+  8  		WHERE type = 'land');
+
+FIRST_NAME           LAST_NAME           
+-------------------- --------------------
+James                Bond                
+
+1 row selected. 
+
+SQL> 
+SQL> spool off

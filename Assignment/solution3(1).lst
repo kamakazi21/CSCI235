@@ -1,0 +1,343 @@
+SQL> 
+SQL> set echo on
+SQL> set feedback on
+SQL> set linesize 200
+SQL> set pagesize 500
+SQL> 
+SQL> EXPLAIN PLAN FOR
+  2  SELECT O_ORDERDATE, O_CUSTKEY 
+  3  FROM ORDERS
+  4  WHERE O_ORDERDATE > '31-DEC-1994' AND 
+  5        O_ORDERDATE < '01-JAN-1996';
+
+Explained.
+
+SQL> 
+SQL> SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Plan hash value: 1275100350
+ 
+----------------------------------------------------------------------------
+| Id  | Operation         | Name   | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |        |    13 |   143 |     3   (0)| 00:00:01 |
+|*  1 |  TABLE ACCESS FULL| ORDERS |    13 |   143 |     3   (0)| 00:00:01 |
+----------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   1 - filter("O_ORDERDATE">TO_DATE(' 1994-12-31 00:00:00', 
+              'syyyy-mm-dd hh24:mi:ss') AND "O_ORDERDATE"<TO_DATE(' 1996-01-01 
+              00:00:00', 'syyyy-mm-dd hh24:mi:ss'))
+
+15 rows selected. 
+
+SQL> 
+SQL> CREATE INDEX ORDERS_IDX ON ORDERS(O_ORDERDATE,O_CUSTKEY);
+
+Index created.
+
+SQL> 
+SQL> EXPLAIN PLAN FOR
+  2  SELECT O_ORDERDATE, O_CUSTKEY 
+  3  FROM ORDERS
+  4  WHERE O_ORDERDATE > '31-DEC-1994' AND 
+  5        O_ORDERDATE < '01-JAN-1996';
+
+Explained.
+
+SQL> 
+SQL> SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Plan hash value: 1323323054
+ 
+-------------------------------------------------------------------------------
+| Id  | Operation        | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+-------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT |            |    13 |   143 |     1   (0)| 00:00:01 |
+|*  1 |  INDEX RANGE SCAN| ORDERS_IDX |    13 |   143 |     1   (0)| 00:00:01 |
+-------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   1 - access("O_ORDERDATE">TO_DATE(' 1994-12-31 00:00:00', 
+              'syyyy-mm-dd hh24:mi:ss') AND "O_ORDERDATE"<TO_DATE(' 1996-01-01 
+              00:00:00', 'syyyy-mm-dd hh24:mi:ss'))
+
+15 rows selected. 
+
+SQL> 
+SQL> DROP INDEX ORDERS_IDX;
+
+Index dropped.
+
+SQL> 
+SQL> /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+SQL> 
+SQL> EXPLAIN PLAN FOR
+  2  SELECT L_PARTKEY, L_SUPPKEY
+  3  FROM LINEITEM
+  4  WHERE ( L_TAX IN (0.02, 0.06) OR L_DISCOUNT> 0.4 ) AND
+  5        L_EXTENDEDPRICE = 7232;
+
+Explained.
+
+SQL> 
+SQL> SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Plan hash value: 98068815
+ 
+------------------------------------------------------------------------------
+| Id  | Operation         | Name     | Rows  | Bytes | Cost (%CPU)| Time     |
+------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |          |     1 |    17 |     5   (0)| 00:00:01 |
+|*  1 |  TABLE ACCESS FULL| LINEITEM |     1 |    17 |     5   (0)| 00:00:01 |
+------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   1 - filter("L_EXTENDEDPRICE"=7232 AND (("L_TAX"=0.02 OR 
+              "L_TAX"=0.06) OR "L_DISCOUNT">0.4))
+
+14 rows selected. 
+
+SQL> 
+SQL> CREATE INDEX LINEITEM_IDX ON LINEITEM(L_EXTENDEDPRICE);
+
+Index created.
+
+SQL> 
+SQL> EXPLAIN PLAN FOR
+  2  SELECT L_PARTKEY, L_SUPPKEY
+  3  FROM LINEITEM
+  4  WHERE ( L_TAX IN (0.02, 0.06) OR L_DISCOUNT> 0.4 ) AND
+  5        L_EXTENDEDPRICE = 7232;
+
+Explained.
+
+SQL> 
+SQL> SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Plan hash value: 1265307978
+ 
+----------------------------------------------------------------------------------------------------
+| Id  | Operation                           | Name         | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                    |              |     1 |    17 |     3   (0)| 00:00:01 |
+|*  1 |  TABLE ACCESS BY INDEX ROWID BATCHED| LINEITEM     |     1 |    17 |     3   (0)| 00:00:01 |
+|*  2 |   INDEX RANGE SCAN                  | LINEITEM_IDX |     1 |       |     1   (0)| 00:00:01 |
+----------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   1 - filter("L_TAX"=0.02 OR "L_TAX"=0.06 OR "L_DISCOUNT">0.4)
+   2 - access("L_EXTENDEDPRICE"=7232)
+
+15 rows selected. 
+
+SQL> 
+SQL> DROP INDEX LINEITEM_IDX;
+
+Index dropped.
+
+SQL> 
+SQL> /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+SQL> 
+SQL> EXPLAIN PLAN FOR
+  2  SELECT DISTINCT PS_AVAILQTY, PS_SUPPLYCOST, PS_SUPPKEY
+  3  FROM PARTSUPP;
+
+Explained.
+
+SQL> 
+SQL> SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Plan hash value: 720660522
+ 
+-------------------------------------------------------------------------------
+| Id  | Operation          | Name     | Rows  | Bytes | Cost (%CPU)| Time     |
+-------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT   |          |    40 |   480 |     4  (25)| 00:00:01 |
+|   1 |  HASH UNIQUE       |          |    40 |   480 |     4  (25)| 00:00:01 |
+|   2 |   TABLE ACCESS FULL| PARTSUPP |    40 |   480 |     3   (0)| 00:00:01 |
+-------------------------------------------------------------------------------
+
+9 rows selected. 
+
+SQL> 
+SQL> CREATE INDEX PARTSUPP_IDX ON PARTSUPP(PS_AVAILQTY, PS_SUPPLYCOST, PS_SUPPKEY);
+
+Index created.
+
+SQL> 
+SQL> EXPLAIN PLAN FOR
+  2  SELECT DISTINCT PS_AVAILQTY, PS_SUPPLYCOST, PS_SUPPKEY
+  3  FROM PARTSUPP;
+
+Explained.
+
+SQL> 
+SQL> SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Plan hash value: 889854993
+ 
+-----------------------------------------------------------------------------------
+| Id  | Operation          | Name         | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT   |              |    40 |   480 |     2  (50)| 00:00:01 |
+|   1 |  SORT UNIQUE NOSORT|              |    40 |   480 |     2  (50)| 00:00:01 |
+|   2 |   INDEX FULL SCAN  | PARTSUPP_IDX |    40 |   480 |     1   (0)| 00:00:01 |
+-----------------------------------------------------------------------------------
+
+9 rows selected. 
+
+SQL> 
+SQL> DROP INDEX PARTSUPP_IDX;
+
+Index dropped.
+
+SQL> 
+SQL> /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+SQL> 
+SQL> EXPLAIN PLAN FOR
+  2  SELECT P_BRAND, AVG(P_RETAILPRICE)
+  3  FROM PART 
+  4  GROUP BY P_BRAND;
+
+Explained.
+
+SQL> 
+SQL> SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Plan hash value: 3898611309
+ 
+---------------------------------------------------------------------------
+| Id  | Operation          | Name | Rows  | Bytes | Cost (%CPU)| Time     |
+---------------------------------------------------------------------------
+|   0 | SELECT STATEMENT   |      |     9 |   144 |     4  (25)| 00:00:01 |
+|   1 |  HASH GROUP BY     |      |     9 |   144 |     4  (25)| 00:00:01 |
+|   2 |   TABLE ACCESS FULL| PART |    10 |   160 |     3   (0)| 00:00:01 |
+---------------------------------------------------------------------------
+
+9 rows selected. 
+
+SQL> 
+SQL> CREATE INDEX PART_IDX ON PART(P_BRAND);
+
+Index created.
+
+SQL> 
+SQL> EXPLAIN PLAN FOR
+  2  SELECT P_BRAND, AVG(P_RETAILPRICE)
+  3  FROM PART 
+  4  GROUP BY P_BRAND;
+
+Explained.
+
+SQL> 
+SQL> SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Plan hash value: 3703788837
+ 
+-----------------------------------------------------------------------------------------
+| Id  | Operation                    | Name     | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT             |          |     9 |   144 |     2   (0)| 00:00:01 |
+|   1 |  SORT GROUP BY NOSORT        |          |     9 |   144 |     2   (0)| 00:00:01 |
+|   2 |   TABLE ACCESS BY INDEX ROWID| PART     |    10 |   160 |     2   (0)| 00:00:01 |
+|   3 |    INDEX FULL SCAN           | PART_IDX |    10 |       |     1   (0)| 00:00:01 |
+-----------------------------------------------------------------------------------------
+
+10 rows selected. 
+
+SQL> 
+SQL> DROP INDEX PART_IDX;
+
+Index dropped.
+
+SQL> 
+SQL> /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+SQL> 
+SQL> EXPLAIN PLAN FOR
+  2  SELECT *
+  3  FROM SUPPLIER
+  4  ORDER BY S_NAME, S_NATIONKEY;
+
+Explained.
+
+SQL> 
+SQL> SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Plan hash value: 3317074190
+ 
+-------------------------------------------------------------------------------
+| Id  | Operation          | Name     | Rows  | Bytes | Cost (%CPU)| Time     |
+-------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT   |          |     5 |   775 |     4  (25)| 00:00:01 |
+|   1 |  SORT ORDER BY     |          |     5 |   775 |     4  (25)| 00:00:01 |
+|   2 |   TABLE ACCESS FULL| SUPPLIER |     5 |   775 |     3   (0)| 00:00:01 |
+-------------------------------------------------------------------------------
+
+9 rows selected. 
+
+SQL> 
+SQL> CREATE INDEX SUPPLIER_IDX ON SUPPLIER(S_NAME, S_NATIONKEY);
+
+Index created.
+
+SQL> 
+SQL> EXPLAIN PLAN FOR
+  2  SELECT *
+  3  FROM SUPPLIER
+  4  ORDER BY S_NAME, S_NATIONKEY;
+
+Explained.
+
+SQL> 
+SQL> SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Plan hash value: 1435419994
+ 
+--------------------------------------------------------------------------------------------
+| Id  | Operation                   | Name         | Rows  | Bytes | Cost (%CPU)| Time     |
+--------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT            |              |     5 |   775 |     2   (0)| 00:00:01 |
+|   1 |  TABLE ACCESS BY INDEX ROWID| SUPPLIER     |     5 |   775 |     2   (0)| 00:00:01 |
+|   2 |   INDEX FULL SCAN           | SUPPLIER_IDX |     5 |       |     1   (0)| 00:00:01 |
+--------------------------------------------------------------------------------------------
+
+9 rows selected. 
+
+SQL> 
+SQL> DROP INDEX SUPPLIER_IDX;
+
+Index dropped.
+
+SQL> 
+SQL> /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+SQL> 
+SQL> spool off

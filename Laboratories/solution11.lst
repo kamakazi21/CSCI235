@@ -1,0 +1,34 @@
+SQL> SET ECHO ON
+SQL> SET FEEDBACK ON
+SQL> SET LINESIZE 100
+SQL> SET PAGESIZE 200
+SQL> 
+SQL> /* (4)	Implement SQL script solution11.sql that performs the following actions.                   */
+SQL> 
+SQL> /*      First, your script modifies the structure of the sample database such that after 
+SQL>        the modifications it is possible to store information about the total number of parts 
+SQL>        supplied by each supplier. Please, remember that some supplier may supply 
+SQL>        no parts at the moment due to a poor economic situation. It is important to find the best 
+SQL>        design. Remember to enforce appropriate consistency constraints.                           */
+SQL> 
+SQL> ALTER TABLE SUPPLIER ADD TOTAL_PARTS NUMBER(9) NULL;
+
+Table altered.
+
+SQL> ALTER TABLE SUPPLIER ADD CONSTRAINT SUPPLIER_CHECK CHECK (TOTAL_PARTS >= 0);
+
+Table altered.
+
+SQL> 
+SQL> /* Next, your script saves in the sample database information about the total number of parts 
+SQL>   supplied by each supplier.                                                                      */
+SQL> 
+SQL> UPDATE SUPPLIER
+  2  SET TOTAL_PARTS = (SELECT SUM(NVL(PS_AVAILQTY),0)
+  3                     FROM PARTSUPP
+  4                     WHERE PARTSUPP.PS_SUPPKEY  = SUPPLIER.S_SUPPKEY);
+
+5 rows updated.
+
+SQL> 
+SQL> SPOOL OFF

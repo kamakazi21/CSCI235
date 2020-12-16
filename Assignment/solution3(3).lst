@@ -1,0 +1,442 @@
+> db.tpchr.createIndex({"PART.brand":1});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+> db.tpchr.getIndexes();
+[
+	{
+		"v" : 2,
+		"key" : {
+			"_id" : 1
+		},
+		"name" : "_id_",
+		"ns" : "test.tpchr"
+	},
+	{
+		"v" : 2,
+		"key" : {
+			"PART.brand" : 1
+		},
+		"name" : "PART.brand_1",
+		"ns" : "test.tpchr"
+	}
+]
+> db.tpchr.find({"PART.brand":"Brand#54  "}).explain();
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "test.tpchr",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"PART.brand" : {
+				"$eq" : "Brand#54  "
+			}
+		},
+		"queryHash" : "8AE0CFA2",
+		"planCacheKey" : "5510E844",
+		"winningPlan" : {
+			"stage" : "FETCH",
+			"inputStage" : {
+				"stage" : "IXSCAN",
+				"keyPattern" : {
+					"PART.brand" : 1
+				},
+				"indexName" : "PART.brand_1",
+				"isMultiKey" : false,
+				"multiKeyPaths" : {
+					"PART.brand" : [ ]
+				},
+				"isUnique" : false,
+				"isSparse" : false,
+				"isPartial" : false,
+				"indexVersion" : 2,
+				"direction" : "forward",
+				"indexBounds" : {
+					"PART.brand" : [
+						"[\"Brand#54  \", \"Brand#54  \"]"
+					]
+				}
+			}
+		},
+		"rejectedPlans" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "csci235-VirtualBox",
+		"port" : 4000,
+		"version" : "4.2.2",
+		"gitVersion" : "a0bbbff6ada159e19298d37946ac8dc4b497eadf"
+	},
+	"ok" : 1
+}
+> db.tpchr.dropIndex("PART.brand_1");
+{ "nIndexesWas" : 2, "ok" : 1 }
+> 
+> 
+> db.tpchr.createIndex({"PART.retailprice":1});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+> db.tpchr.getIndexes();
+[
+	{
+		"v" : 2,
+		"key" : {
+			"_id" : 1
+		},
+		"name" : "_id_",
+		"ns" : "test.tpchr"
+	},
+	{
+		"v" : 2,
+		"key" : {
+			"PART.retailprice" : 1
+		},
+		"name" : "PART.retailprice_1",
+		"ns" : "test.tpchr"
+	}
+]
+> db.tpchr.find({"PART.retailprice":{$gt:900.0}}).explain();
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "test.tpchr",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"PART.retailprice" : {
+				"$gt" : 900
+			}
+		},
+		"queryHash" : "AE40E823",
+		"planCacheKey" : "E5D44645",
+		"winningPlan" : {
+			"stage" : "FETCH",
+			"inputStage" : {
+				"stage" : "IXSCAN",
+				"keyPattern" : {
+					"PART.retailprice" : 1
+				},
+				"indexName" : "PART.retailprice_1",
+				"isMultiKey" : false,
+				"multiKeyPaths" : {
+					"PART.retailprice" : [ ]
+				},
+				"isUnique" : false,
+				"isSparse" : false,
+				"isPartial" : false,
+				"indexVersion" : 2,
+				"direction" : "forward",
+				"indexBounds" : {
+					"PART.retailprice" : [
+						"(900.0, inf.0]"
+					]
+				}
+			}
+		},
+		"rejectedPlans" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "csci235-VirtualBox",
+		"port" : 4000,
+		"version" : "4.2.2",
+		"gitVersion" : "a0bbbff6ada159e19298d37946ac8dc4b497eadf"
+	},
+	"ok" : 1
+}
+> db.tpchr.dropIndex("PART.retailprice_1");
+{ "nIndexesWas" : 2, "ok" : 1 }
+> 
+> db.tpchr.createIndex({"SUPPLIER.name":1},{unique:false});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+> db.tpchr.getIndexes();
+[
+	{
+		"v" : 2,
+		"key" : {
+			"_id" : 1
+		},
+		"name" : "_id_",
+		"ns" : "test.tpchr"
+	},
+	{
+		"v" : 2,
+		"key" : {
+			"SUPPLIER.name" : 1
+		},
+		"name" : "SUPPLIER.name_1",
+		"ns" : "test.tpchr"
+	}
+]
+> db.tpchr.find({"SUPPLIER.name":{$exists:true}},{"SUPPLIER.name":1}).explain();
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "test.tpchr",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"SUPPLIER.name" : {
+				"$exists" : true
+			}
+		},
+		"queryHash" : "00A3861E",
+		"planCacheKey" : "5EECA64C",
+		"winningPlan" : {
+			"stage" : "PROJECTION_DEFAULT",
+			"transformBy" : {
+				"SUPPLIER.name" : 1
+			},
+			"inputStage" : {
+				"stage" : "FETCH",
+				"filter" : {
+					"SUPPLIER.name" : {
+						"$exists" : true
+					}
+				},
+				"inputStage" : {
+					"stage" : "IXSCAN",
+					"keyPattern" : {
+						"SUPPLIER.name" : 1
+					},
+					"indexName" : "SUPPLIER.name_1",
+					"isMultiKey" : false,
+					"multiKeyPaths" : {
+						"SUPPLIER.name" : [ ]
+					},
+					"isUnique" : false,
+					"isSparse" : false,
+					"isPartial" : false,
+					"indexVersion" : 2,
+					"direction" : "forward",
+					"indexBounds" : {
+						"SUPPLIER.name" : [
+							"[MinKey, MaxKey]"
+						]
+					}
+				}
+			}
+		},
+		"rejectedPlans" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "csci235-VirtualBox",
+		"port" : 4000,
+		"version" : "4.2.2",
+		"gitVersion" : "a0bbbff6ada159e19298d37946ac8dc4b497eadf"
+	},
+	"ok" : 1
+}
+> db.tpchr.dropIndex("SUPPLIER.name_1");
+{ "nIndexesWas" : 2, "ok" : 1 }
+> 
+> db.tpchr.createIndex({"PART.brand":1,"PART.type":1},{unique:false});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+> db.tpchr.getIndexes();
+[
+	{
+		"v" : 2,
+		"key" : {
+			"_id" : 1
+		},
+		"name" : "_id_",
+		"ns" : "test.tpchr"
+	},
+	{
+		"v" : 2,
+		"key" : {
+			"PART.brand" : 1,
+			"PART.type" : 1
+		},
+		"name" : "PART.brand_1_PART.type_1",
+		"ns" : "test.tpchr"
+	}
+]
+> db.tpchr.find({"PART.brand":{$exists:true},"PART.type":{$exists:true}},{"PART.brand":1,"PART.name":1}).explain();
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "test.tpchr",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"$and" : [
+				{
+					"PART.brand" : {
+						"$exists" : true
+					}
+				},
+				{
+					"PART.type" : {
+						"$exists" : true
+					}
+				}
+			]
+		},
+		"queryHash" : "8627D3EF",
+		"planCacheKey" : "CF97D3C2",
+		"winningPlan" : {
+			"stage" : "PROJECTION_DEFAULT",
+			"transformBy" : {
+				"PART.brand" : 1,
+				"PART.name" : 1
+			},
+			"inputStage" : {
+				"stage" : "FETCH",
+				"filter" : {
+					"$and" : [
+						{
+							"PART.brand" : {
+								"$exists" : true
+							}
+						},
+						{
+							"PART.type" : {
+								"$exists" : true
+							}
+						}
+					]
+				},
+				"inputStage" : {
+					"stage" : "IXSCAN",
+					"keyPattern" : {
+						"PART.brand" : 1,
+						"PART.type" : 1
+					},
+					"indexName" : "PART.brand_1_PART.type_1",
+					"isMultiKey" : false,
+					"multiKeyPaths" : {
+						"PART.brand" : [ ],
+						"PART.type" : [ ]
+					},
+					"isUnique" : false,
+					"isSparse" : false,
+					"isPartial" : false,
+					"indexVersion" : 2,
+					"direction" : "forward",
+					"indexBounds" : {
+						"PART.brand" : [
+							"[MinKey, MaxKey]"
+						],
+						"PART.type" : [
+							"[MinKey, MaxKey]"
+						]
+					}
+				}
+			}
+		},
+		"rejectedPlans" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "csci235-VirtualBox",
+		"port" : 4000,
+		"version" : "4.2.2",
+		"gitVersion" : "a0bbbff6ada159e19298d37946ac8dc4b497eadf"
+	},
+	"ok" : 1
+}
+> db.tpchr.dropIndex("PART.brand_1_PART.type_1");
+{ "nIndexesWas" : 2, "ok" : 1 }
+> 
+> db.tpchr.createIndex({"CUSTOMER.submits.ORDER":1},{unique:false});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+> db.tpchr.getIndexes();
+[
+	{
+		"v" : 2,
+		"key" : {
+			"_id" : 1
+		},
+		"name" : "_id_",
+		"ns" : "test.tpchr"
+	},
+	{
+		"v" : 2,
+		"key" : {
+			"CUSTOMER.submits.ORDER" : 1
+		},
+		"name" : "CUSTOMER.submits.ORDER_1",
+		"ns" : "test.tpchr"
+	}
+]
+> db.tpchr.find({"CUSTOMER.submits.ORDER":{$exists:true}},{"CUSTOMER.name":1}).explain();
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "test.tpchr",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"CUSTOMER.submits.ORDER" : {
+				"$exists" : true
+			}
+		},
+		"queryHash" : "C6E7DBF2",
+		"planCacheKey" : "4FF9F48D",
+		"winningPlan" : {
+			"stage" : "PROJECTION_DEFAULT",
+			"transformBy" : {
+				"CUSTOMER.name" : 1
+			},
+			"inputStage" : {
+				"stage" : "FETCH",
+				"filter" : {
+					"CUSTOMER.submits.ORDER" : {
+						"$exists" : true
+					}
+				},
+				"inputStage" : {
+					"stage" : "IXSCAN",
+					"keyPattern" : {
+						"CUSTOMER.submits.ORDER" : 1
+					},
+					"indexName" : "CUSTOMER.submits.ORDER_1",
+					"isMultiKey" : true,
+					"multiKeyPaths" : {
+						"CUSTOMER.submits.ORDER" : [
+							"CUSTOMER.submits"
+						]
+					},
+					"isUnique" : false,
+					"isSparse" : false,
+					"isPartial" : false,
+					"indexVersion" : 2,
+					"direction" : "forward",
+					"indexBounds" : {
+						"CUSTOMER.submits.ORDER" : [
+							"[MinKey, MaxKey]"
+						]
+					}
+				}
+			}
+		},
+		"rejectedPlans" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "csci235-VirtualBox",
+		"port" : 4000,
+		"version" : "4.2.2",
+		"gitVersion" : "a0bbbff6ada159e19298d37946ac8dc4b497eadf"
+	},
+	"ok" : 1
+}
+> db.tpchr.dropIndex("CUSTOMER.submits.ORDER_1");
+{ "nIndexesWas" : 2, "ok" : 1 }
+> 
+

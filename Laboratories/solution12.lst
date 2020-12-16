@@ -1,0 +1,61 @@
+SQL> SET ECHO ON
+SQL> SET FEEDBACK ON
+SQL> SET LINESIZE 100
+SQL> SET PAGESIZE 200
+SQL> 
+SQL> /* (6)	Implement SQL script solution12.sql that performs the following actions.             */
+SQL> 
+SQL> /*      First, the script saves in a separate relational table (a name of the table and
+SQL>	the names of columns are up to you) information about the names of relational tables
+SQL>	included in a sample database and the total number of rows in each table.            */
+SQL> 
+SQL> CREATE TABLE TOTALS(TABLE_NAME, TOTAL_ROWS) AS
+  2  ( SELECT 'LINEITEM', count(*)
+  3    FROM LINEITEM
+  4     UNION
+  5    SELECT 'ORDERS', count(*)
+  6    FROM ORDERS
+  7     UNION
+  8    SELECT 'CUSTOMER', count(*)
+  9    FROM CUSTOMER
+ 10     UNION
+ 11    SELECT 'NATION', count(*)
+ 12    FROM NATION
+ 13     UNION
+ 14    SELECT 'REGION', count(*)
+ 15    FROM REGION
+ 16     UNION
+ 17    SELECT 'SUPPLIER', count(*)
+ 18    FROM SUPPLIER
+ 19     UNION
+ 20    SELECT 'PARTSUPP', count(*)
+ 21    FROM PARTSUPP
+ 22     UNION
+ 23    SELECT 'PART', count(*)
+ 24    FROM PART );
+
+Table created.
+
+SQL> 
+SQL> /* Next, the script lists the contents of the new table in the ascending order of the total 
+SQL>   number of rows in the relational tables.                                                 */
+SQL> 
+SQL> SELECT *
+  2  FROM TOTALS
+  3  ORDER BY TOTAL_ROWS ASC;
+
+TABLE_NA TOTAL_ROWS
+-------- ----------
+SUPPLIER          5
+REGION           10
+PART             10
+CUSTOMER         16
+NATION           30
+PARTSUPP         40
+ORDERS           85
+LINEITEM        309
+
+8 rows selected. 
+
+SQL> 
+SQL> SPOOL OFF

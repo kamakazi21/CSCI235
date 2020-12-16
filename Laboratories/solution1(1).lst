@@ -1,0 +1,157 @@
+SQL> 
+SQL> set echo on
+SQL> set feedback on
+SQL> set linesize 100
+SQL> set pagesize 500
+SQL> 
+SQL> CREATE TABLE ORDER_CREATOR(
+  2   OC_ORDERKEY   NUMBER(12)    NOT NULL,
+  3   USER_NAME     VARCHAR(30)   NOT NULL,
+  4    CONSTRAINT OC_PKEY PRIMARY KEY(OC_ORDERKEY),
+  5    CONSTRAINT OC_FKEY FOREIGN KEY(OC_ORDERKEY) REFERENCES ORDERS(O_ORDERKEY) );
+
+Table created.
+
+SQL> 
+SQL> CREATE OR REPLACE TRIGGER OC_TRIGGER
+  2  
+  3  AFTER INSERT OR DELETE ON ORDERS
+  4   
+  5  FOR EACH ROW
+  6  
+  7  DECLARE
+  8   user_name VARCHAR(30);
+  9  
+ 10  BEGIN
+ 11  
+ 12   IF INSERTING THEN
+ 13    SELECT USER
+ 14    INTO user_name
+ 15    FROM DUAL;
+ 16  
+ 17    INSERT INTO ORDER_CREATOR VALUES(:NEW.O_ORDERKEY, user_name);
+ 18  
+ 19   ELSE
+ 20    DELETE 
+ 21    FROM ORDER_CREATOR
+ 22    WHERE OC_ORDERKEY = :OLD.O_ORDERKEY;
+ 23   END IF;
+ 24  END;
+ 25  /
+
+Trigger created.
+SQL> 
+SQL> show errors
+SQL> 
+SQL> INSERT INTO ORDERS VALUES(7777, 2, 'F', 125093.31, SYSDATE, '5-LOW', 'Clerk#000000951', 0, 'blithely final dolphins');
+
+1 row created.
+
+SQL> INSERT INTO ORDERS VALUES(7778, 2, 'F', 125093.31, SYSDATE, '5-LOW', 'Clerk#000000951', 0, 'blithely final dolphins');
+
+1 row created.
+
+SQL> INSERT INTO ORDERS VALUES(7779, 2, 'F', 125093.31, SYSDATE, '5-LOW', 'Clerk#000000951', 0, 'blithely final dolphins');
+
+INSERT INTO ORDERS VALUES(7779, 2, 'F', 125093.31, SYSDATE, '5-LOW', 'Clerk#000000951', 0, 'blithely final dolphins')
+ *
+ERROR at line 1:
+ORA-00001: unique constraint (CSCI235.ORDERS_PKEY) violated
+
+SQL> COMMIT;
+
+Commit complete.
+
+SQL> 
+SQL> SELECT *
+  2  FROM ORDERS
+  3  WHERE O_ORDERKEY IN (7777,7778,7779);
+
+O_ORDERKEY  O_CUSTKEY O O_TOTALPRICE O_ORDERDA O_ORDERPRIORITY O_CLERK         O_SHIPPRIORITY
+---------- ---------- - ------------ --------- --------------- --------------- --------------
+O_COMMENT                                                                      
+-------------------------------------------------------------------------------
+      7777          2 F    125093.31 05-SEP-20 5-LOW           Clerk#000000951              0 
+blithely final dolphins                                                        
+
+      7778          2 F    125093.31 05-SEP-20 5-LOW           Clerk#000000951              0 
+blithely final dolphins                                                        
+
+      7779          2 F    125093.31 05-SEP-20 5-LOW           Clerk#000000951              0 
+blithely final dolphins                                                        
+
+
+3 rows selected. 
+
+SQL> 
+SQL> SELECT *
+  2  FROM ORDER_CREATOR
+  3  WHERE OC_ORDERKEY IN (7777,7778,7779);
+
+OC_ORDERKEY USER_NAME                     
+----------- ------------------------------
+       7777 CSCI235                       
+       7778 CSCI235                       
+
+2 rows selected. 
+
+SQL> 
+SQL> DELETE 
+  2  FROM ORDERS
+  3  WHERE O_ORDERKEY IN (7777,7778);
+
+2 rows deleted.
+
+SQL> 
+SQL> SELECT *
+  2  FROM ORDERS
+  3  WHERE O_ORDERKEY IN (7777,7778,7779);
+
+O_ORDERKEY  O_CUSTKEY O O_TOTALPRICE O_ORDERDA O_ORDERPRIORITY O_CLERK         O_SHIPPRIORITY
+---------- ---------- - ------------ --------- --------------- --------------- --------------
+O_COMMENT                                                                      
+-------------------------------------------------------------------------------
+      7779          2 F    125093.31 05-SEP-20 5-LOW           Clerk#000000951              0 
+blithely final dolphins                                                        
+
+
+1 row selected. 
+
+SQL> 
+SQL> SELECT *
+  2  FROM ORDER_CREATOR
+  3  WHERE OC_ORDERKEY IN (7777,7778,7779);
+
+0 rows selected. 
+
+SQL> 
+SQL> DELETE 
+  2  FROM ORDERS
+  3  WHERE O_ORDERKEY = 7778;
+
+0 rows deleted.
+
+SQL> 
+SQL> SELECT *
+  2  FROM ORDERS
+  3  WHERE O_ORDERKEY IN (7777,7778,7779);
+
+O_ORDERKEY  O_CUSTKEY O O_TOTALPRICE O_ORDERDA O_ORDERPRIORITY O_CLERK         O_SHIPPRIORITY
+---------- ---------- - ------------ --------- --------------- --------------- --------------
+O_COMMENT                                                                      
+-------------------------------------------------------------------------------
+      7779          2 F    125093.31 05-SEP-20 5-LOW           Clerk#000000951              0 
+blithely final dolphins                                                        
+
+
+1 row selected. 
+
+SQL> 
+SQL> SELECT *
+  2  FROM ORDER_CREATOR
+  3  WHERE OC_ORDERKEY IN (7777,7778,7779);
+
+0 rows selected. 
+
+SQL> 
+SQL> spool off

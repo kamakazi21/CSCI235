@@ -1,0 +1,56 @@
+SQL> 
+SQL> set serveroutput on
+SQL> set echo on
+SQL> set feedback on
+SQL> set linesize 200
+SQL> set pagesize 500
+SQL> 
+SQL> /* Implement an anonymous PL/SQL block that lists in a format listed below the names of regions 
+SQL>   (attribute R_NAME in a relational table REGION), and the names of at most 3 nations 
+SQL>   (attribute n_nation in a relational table NATION) included in each region. The names 
+SQL>   of regions must be sorted in ascending order and the names of nations must be sorted in 
+SQL>   descending order. All name must be listed in uppercase letters.                            
+SQL>
+SQL>   REGION-NAME-1 : NATION-NAME-1 NATION-NAME-2 NATION-NAME-3
+SQL>   REGION-NAME-2 : NATION-NAME-1 NATION-NAME-2 NATION-NAME-3
+SQL>   REGION-NAME-3 : NATION-NAME-1 NATION-NAME-2 NATION-NAME-3
+SQL>	...		...		...		...		...                      */
+SQL> 
+SQL> 
+SQL> BEGIN
+  2   FOR region_row IN ( SELECT R_REGIONKEY, RTRIM(R_NAME, ' ') RN
+  3                       FROM REGION
+  4  		     ORDER BY R_NAME ASC )
+  5   LOOP
+  6    DBMS_OUTPUT.PUT(region_row.RN || ' : ');
+  7    FOR nation_row IN ( SELECT RTRIM(N_NAME,' ') NN
+  8                        FROM NATION
+  9                        WHERE N_REGIONKEY = region_row.R_REGIONKEY AND
+ 10                              ROWNUM < 4
+ 11                        ORDER BY N_NAME DESC )
+ 12    LOOP
+ 13     DBMS_OUTPUT.PUT(nation_row.NN || ' ');
+ 14    END LOOP;
+ 15    DBMS_OUTPUT.PUT_LINE('');
+ 16   END LOOP;
+ 17  EXCEPTION
+ 18    WHEN OTHERS THEN
+ 19      DBMS_OUTPUT.PUT_LINE(SQLCODE ||'-'|| SQLERRM);
+ 20  END;
+ 21  /
+AFRICA : SUDAN ALGERIA 
+ASIA : CANADA BRAZIL AUSTRALIA 
+AUSTRALIA : KENYA CHINA 
+CENTRAL AMERICA : UNITED KINGDOM SAUDI ARABIA RWNDA 
+EUROPE : MALAWI INDONESIA INDIA 
+MIDDLE EAST : IRAQ IRAN EGYPT 
+NORTH AMERICA : 
+OCEANIA : JORDAN INDIA CHINA 
+SOUTH AMERICA : JAPAN GERMANY FRANCE 
+SOUTH AMERICA : RUSSIA ROMANIA 
+
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> spool off

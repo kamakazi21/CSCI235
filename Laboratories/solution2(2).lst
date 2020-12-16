@@ -1,0 +1,116 @@
+
+> /* (1) Display in a pretty format information about the total number of customers who submitted empty orders, i.e. orders with no libes. */;
+> 
+> db.tpchr.find({"CUSTOMER.submits.ORDER.contains":{$size:0}}).count();
+5
+> 
+> /* (2)Display in a pretty format information about the avilable quantities of parts (availqty) that have retail price > 908. List only information about available quantities, and retail prices */;
+> 
+> db.tpchr.find({"PART.retailprice":{$gt:908}},{"PART.shipped.PARTSUPP.availqty":1,"PART.retailprice":1,"_id":0}).pretty();
+{
+	"PART" : {
+		"retailprice" : 909,
+		"shipped" : [
+			{
+				"PARTSUPP" : {
+					"availqty" : 9583
+				}
+			},
+			{
+				"PARTSUPP" : {
+					"availqty" : 3063
+				}
+			},
+			{
+				"PARTSUPP" : {
+					"availqty" : 7054
+				}
+			},
+			{
+				"PARTSUPP" : {
+					"availqty" : 7542
+				}
+			}
+		]
+	}
+}
+> 
+> /* (3)Display in a pretty format information about the customers whose nation is JORDAN or MALAWI. Do not list the orders submitted by the customers */;
+> 
+> db.tpchr.find({$or:[{"CUSTOMER.nation":"JORDAN"},{"CUSTOMER.nation":"MALAWI"}]},{"CUSTOMER.submits":0}).pretty();
+{
+	"_id" : "1",
+	"CUSTOMER" : {
+		"customer key" : 1,
+		"name" : "Customer#000000001",
+		"address" : "j5JsirBM9PsCy0O1m",
+		"nation" : "MALAWI",
+		"phone" : "28-989-741-2988",
+		"acctbal" : 711.56,
+		"mktsegment" : "BUILDING  "
+	}
+}
+{
+	"_id" : "2",
+	"CUSTOMER" : {
+		"customer key" : 2,
+		"name" : "Customer#000000002",
+		"address" : "487LW1dovn6Q4dMVymKwwLE9OKf3QG",
+		"nation" : "JORDAN",
+		"phone" : "26-768-687-3665",
+		"acctbal" : 121.65,
+		"mktsegment" : "AUTOMOBILE"
+	}
+}
+{
+	"_id" : "13",
+	"CUSTOMER" : {
+		"customer key" : 13,
+		"name" : "Customer#000000007",
+		"address" : "TcGe5gaZNgVePxU5kRrvXBfkasDTea",
+		"nation" : "MALAWI",
+		"phone" : "28-190-982-9759",
+		"acctbal" : 9561.95,
+		"mktsegment" : "AUTOMOBILE"
+	}
+}
+> 
+> /* (4)Display in a pretty format information about the customers whose  account blance is less then 122 and about parts that have size less than 3. For the customers, list only information about customer key, and account balance. For the parts list only informaion about part key and */;
+> 
+> db.tpchr.find({$or:[{"CUSTOMER.acctbal":{$lt:122}},{"PART.size":{$lt:3}}]},{"CUSTOMER.customer key":1,"CUSTOMER.acctbal":1,"PART.part key":1,"PART.size":1,"_id":0}).pretty();
+{ "CUSTOMER" : { "customer key" : 2, "acctbal" : 121.65 } }
+{ "CUSTOMER" : { "customer key" : 8, "acctbal" : 121.65 } }
+{ "PART" : { "part key" : 2, "size" : 1 } }
+> 
+> /* (5)Display in a pretty format information about part key and the supplier keys of all suppliers who supplied at least one part with retailprice equal to 909 and such that size equlas to 12 */;
+> 
+> db.tpchr.find({$and:[{"PART.retailprice":909, "PART.size":12}]},{"PART.part key":1,"PART.shipped.PARTSUPP.ref supplier":1,"_id":0}).pretty();
+{
+	"PART" : {
+		"part key" : 9,
+		"shipped" : [
+			{
+				"PARTSUPP" : {
+					"ref supplier" : "1"
+				}
+			},
+			{
+				"PARTSUPP" : {
+					"ref supplier" : "2"
+				}
+			},
+			{
+				"PARTSUPP" : {
+					"ref supplier" : "3"
+				}
+			},
+			{
+				"PARTSUPP" : {
+					"ref supplier" : "4"
+				}
+			}
+		]
+	}
+}
+> 
+

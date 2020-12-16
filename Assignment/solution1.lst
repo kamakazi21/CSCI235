@@ -1,0 +1,57 @@
+SQL> 
+SQL> set echo on
+SQL> set feedback on
+SQL> set linesize 200
+SQL> set pagesize 500
+SQL> 
+SQL> /* We would like to implement a relational database to store information about real estate properties
+SQL>   and owners of real estate properties.
+SQL>
+SQL>   To simplify a design, we consider only two types of real properties: stand-alone houses and blocks 
+SQL>   of land.
+SQL>
+SQL>   Both types of real estate properties are described by a full address that consists of city, street, 
+SQL>   building number/lot number, and area.
+SQL>
+SQL>   Stand-alone houses are additionally described by the total number of bedrooms.
+SQL>
+SQL>   Stand-alone houses and blocks of land are uniquely identified by a group of attributes city, street, 
+SQL>   and building number/lot number.
+SQL>
+SQL>   The real estate properties are owned by the owners. A typical owner is described by first name, 
+SQL>   last name, and mobile phone number. An owner is identified by a mobile phone number.
+SQL>
+SQL>   Whenever a real estate property is put on a market the owners provide information about their asking 
+SQL>   price for such property.                                                                               */
+SQL> 
+SQL> CREATE TABLE OWNER(
+  2   first_name      VARCHAR(20)   NOT NULL,
+  3   last_name       VARCHAR(20)   NOT NULL,
+  4   phone           NUMBER(12)    NOT NULL,
+  5    CONSTRAINT OWNER_PK PRIMARY KEY (phone),
+  6    CONSTRAINT OWNER_CHECK CHECK (phone > 0 ) );
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE PROPERTY(
+  2   city            VARCHAR(20)   NOT NULL,
+  3   street          VARCHAR(20)   NOT NULL,
+  4   bldg_lot        NUMBER(4)     NOT NULL,
+  5   area            NUMBER(9,2)   NOT NULL,
+  6   bedroom         NUMBER(1)         NULL,
+  7   type            VARCHAR(5)    NOT NULL,
+  8   price           NUMBER(9,2)       NULL,
+  9   owner           NUMBER(12)        NULL,
+ 10    CONSTRAINT PROPERTY_PKEY PRIMARY KEY (city, street, bldg_lot),
+ 11    CONSTRAINT PROPERTY_CHECK1 CHECK (bldg_lot > 0),
+ 12    CONSTRAINT PROPERTY_CHECK2 CHECK (area > 0 ),
+ 13    CONSTRAINT PROPERTY_CHECK3 CHECK (bedroom >=0 ),
+ 14    CONSTRAINT PROPERTY_CHECK4 CHECK (type IN ('house', 'land') ),
+ 15    CONSTRAINT PROPERTY_CHECK5 CHECK (price > 0 ),
+ 16    CONSTRAINT PROPERTY_FKEY FOREIGN KEY (owner) REFERENCES OWNER(phone) );
+
+Table created.
+
+SQL> 
+SQL> spool off
